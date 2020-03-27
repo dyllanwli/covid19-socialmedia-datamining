@@ -1,0 +1,5 @@
+pandas
+geopandas
+tweepy
+plotly
+seaborn
