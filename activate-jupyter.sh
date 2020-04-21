@@ -9,7 +9,7 @@
 # source ../HPRC-Python3.7-Example/venv/bin/activate
 
 module load Anaconda/3-5.0.0.1
-source activate jupyterlab_1.2.2
+source activate jupyterlab_2.0.1
 
 
 # nohup python test-tweets.py & >> nohup.out

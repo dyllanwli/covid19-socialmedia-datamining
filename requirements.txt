@@ -3,3 +3,8 @@ geopandas
 tweepy
 plotly
 seaborn
+pandarallel
+unidecode
+tornado
+reverse-geocoder
+descartes
