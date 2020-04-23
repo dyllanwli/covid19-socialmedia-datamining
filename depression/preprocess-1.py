@@ -67,7 +67,7 @@ class PreprocessTwitter:
         nopunc = re.sub("^\d+\s|\s\d+\s|\s\d+$", " ", nopunc)
         nopunc = re.sub("\d", "", nopunc)
         # remove repeated characters
-        nopunc = re.sub("(RT|corona|covid|virus)", "", nopunc)
+        nopunc = re.sub("(rt|corona|covid|virus)", "", nopunc)
         nopunc = word_tokenize(nopunc)
         # remove stopwords from final word list
         nopunc = [
@@ -85,31 +85,34 @@ class PreprocessTwitter:
         return row list
         '''
         row_list = []
-        for json_obj in json_obj_array:
-            created_at = pd.to_datetime(json_obj.get("created_at")) 
-            # concverted to pd datatime
-            status_id = json_obj.get("id")
-            full_text = json_obj.get("full_text")
-            cleaned_text = self._clean_text(full_text)
-            # clean text
-            entities = json_obj.get("entities")
-            retweet_count = json_obj.get("retweet_count")
-            favorite_count = json_obj.get("favorite_count")
-            CountyId = json_obj.get("CountyId")
-            if CountyId is None:
-                continue
-            user = json_obj.get("user")
-            user_name = user.get("name")
-            user_followers_count = user.get("followers_count")
-            user_friends_count = user.get("friends_count")
-            user_listed_count = user.get("listed_count")
-            user_favourites_count = user.get("favourites_count")
-            user_location = user.get("location")
-            geo = json_obj.get("geo")
+        nums = len(json_obj_array)
+        with tqdm(total=nums) as pbar:
+            for json_obj in json_obj_array:
+                created_at = pd.to_datetime(json_obj.get("created_at")) 
+                # concverted to pd datatime
+                status_id = json_obj.get("id")
+                full_text = json_obj.get("full_text")
+                cleaned_text = self._clean_text(full_text)
+                # clean text
+                entities = json_obj.get("entities")
+                retweet_count = json_obj.get("retweet_count")
+                favorite_count = json_obj.get("favorite_count")
+                CountyId = json_obj.get("CountyId")
+                if CountyId is None:
+                    continue
+                user = json_obj.get("user")
+                user_name = user.get("name")
+                user_followers_count = user.get("followers_count")
+                user_friends_count = user.get("friends_count")
+                user_listed_count = user.get("listed_count")
+                user_favourites_count = user.get("favourites_count")
+                user_location = user.get("location")
+                geo = json_obj.get("geo")
 
-            row = [created_at, status_id, full_text, cleaned_text, entities, retweet_count, favorite_count, CountyId,
-                   user_name, user_followers_count, user_friends_count, user_listed_count, favourites_count, user_location, geo]
-            row_list.append(row)
+                row = [created_at, status_id, full_text, cleaned_text, entities, retweet_count, favorite_count, CountyId,
+                    user_name, user_followers_count, user_friends_count, user_listed_count, user_favourites_count, user_location, geo]
+                row_list.append(row)
+                pbar.update(1)
 
         return row_list
 
@@ -118,7 +121,7 @@ class PreprocessTwitter:
         return row list
         '''
         with open(json_path, "r") as j:
-            json_obj = ujson.load(j)
+            json_obj_array = ujson.load(j)
             row_list = self.tweets_filter(json_obj_array)
             if row_list is not None:
                 return row_list
@@ -133,7 +136,7 @@ class PreprocessTwitter:
             for json_path in json_path_list:
                 row_list = self.read_one_json(json_path)
                 tweet_list.extend(row_list)
-                break
+                # break  # for test
                 pbar.update(1)
             print("all done")
         return tweet_list
@@ -141,3 +144,13 @@ class PreprocessTwitter:
     def start_all(self, json_path_list):
         tweet_list = self.read_all_json(json_path_list)
         self.write_to_csv(tweet_list, self.output_file_path)
+
+
+if if __name__ == "__main__":
+    PT = PreprocessTwitter()
+    print(len(PT.tweets_filepath_set))
+    json_path_list = []
+    for month in PT.tweets_filepath_set:
+        month_file_list = PT.tweets_filepath_set[month]
+        json_path_list.extend(month_file_list)
+    
