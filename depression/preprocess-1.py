@@ -146,7 +146,7 @@ class PreprocessTwitter:
         self.write_to_csv(tweet_list, self.output_file_path)
 
 
-if if __name__ == "__main__":
+if __name__ == "__main__":
     PT = PreprocessTwitter()
     print(len(PT.tweets_filepath_set))
     json_path_list = []
