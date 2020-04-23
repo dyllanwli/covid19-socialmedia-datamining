@@ -77,6 +77,7 @@ class PreprocessTwitter:
     
     def write_to_csv(self, tweet_list, output_path):
         df = pd.DataFrame(tweet_list, columns=self.tweet_columns)
+        df = df.drop_duplicates(subset="cleaned_text")
         df.to_csv(output_path, index=False)
 
     def tweets_filter(self, json_obj_array):
@@ -98,7 +99,8 @@ class PreprocessTwitter:
                 retweet_count = json_obj.get("retweet_count")
                 favorite_count = json_obj.get("favorite_count")
                 CountyId = json_obj.get("CountyId")
-                if CountyId is None:
+                lang = json_obj.get("lang")
+                if CountyId is None or lang != "en":
                     continue
                 user = json_obj.get("user")
                 user_name = user.get("name")
@@ -128,29 +130,54 @@ class PreprocessTwitter:
             else:
                 return None
 
-    def read_all_json(self, json_path_list):
+    def read_n_write_all_json(self, json_path_list):
         nums = len(json_path_list)
         print("reading count", nums)
         tweet_list = []
         with tqdm(total=nums) as pbar:
-            for json_path in json_path_list:
-                row_list = self.read_one_json(json_path)
-                tweet_list.extend(row_list)
-                # break  # for test
+            for index, json_path in enumerate(json_path_list):
+                output_path = os.path.join(self.output_folder_path, json_path.split("/")[-1].replace("json", "csv"))
+                #print(output_path)
+                if os.path.isfile(output_path):
+                    print("skipping", output_path)
+                    pbar.update(1)
+                    continue
+                tweet_list = self.read_one_json(json_path)
+                
+                self.write_to_csv(tweet_list, output_path)
+                #if index == 1:
+                 #   break  # for test
                 pbar.update(1)
-            print("all done")
-        return tweet_list
-    
+                
+        print("all done")
+
     def start_all(self, json_path_list):
-        tweet_list = self.read_all_json(json_path_list)
-        self.write_to_csv(tweet_list, self.output_file_path)
-
-
-if __name__ == "__main__":
+        self.read_n_write_all_json(json_path_list)
+        
+def main(month="2020-01", slices=None, order = 1):
     PT = PreprocessTwitter()
     print(len(PT.tweets_filepath_set))
-    json_path_list = []
-    for month in PT.tweets_filepath_set:
-        month_file_list = PT.tweets_filepath_set[month]
-        json_path_list.extend(month_file_list)
+    if slices is not None:
+        start, end = [int(x) for x in slices.split(":")]
+        month_file_list = PT.tweets_filepath_set[month][start:end:order]
+    else:
+        month_file_list = PT.tweets_filepath_set[month][::order]
+    PT.start_all(month_file_list)
+    
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser()
+    
+    parser.add_argument('-m', '--month', type=str, help="month folder")
+    parser.add_argument('-s', '--slices', type=str, help="list slices")
+    parser.add_argument('-o', '--order', type=int, help="1 or -1, process order", default=1) 
+    
+    args = parser.parse_args() 
+    month = args.month
+    slices = args.slices
+    order = args.order
+    
+    main(month, slices, order)
+    
+
     
