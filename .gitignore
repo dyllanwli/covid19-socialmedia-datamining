@@ -2,3 +2,7 @@
 twitter-data-*
 __pycache__
 nohup.out
+
+core*
+*/core*
+*/*/core*
