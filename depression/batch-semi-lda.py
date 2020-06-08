@@ -256,6 +256,8 @@ class BatchProcessSemiLDA:
 
         return df
 
+    def start_one_df(self, df):
+
     def load_n_process_df(self, sample_df_path):
         print("reading", sample_df_path)
         self.df_sample = pd.read_csv(sample_df_path, lineterminator="\n")
@@ -281,7 +283,7 @@ class BatchProcessSemiLDA:
 
             processed_df = self.get_processed_df(model, X)
             return processed_df, result_text_list
-
+        
     def start_one(self, df_path):
         # input df: cleaned text must be cleaned
         df_file_names = df_path.split("/")[-1]
